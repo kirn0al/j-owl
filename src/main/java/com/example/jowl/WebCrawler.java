@@ -17,6 +17,8 @@ import java.util.Set;
 
 public class WebCrawler {
 
+    private static final String LINK_VALIDATION_REGEX = "^(http://|https://)[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,}(:(\\d)+)?(/($|[a-zA-Z0-9\\-\\.\\?\\,\\'\\\\/+=&amp;%\\$#_\\*!]+))*$";
+
     private final Set<String> visitedUrls;
     private final Queue<String> urlsToVisit;
 
@@ -56,9 +58,18 @@ public class WebCrawler {
 
         for (Element linkElement : linkElements) {
             String link = linkElement.attr("href");
-            links.add(link);
+            if(isLinkValid(link)) {
+                links.add(link);
+            }
         }
         return links;
+    }
+
+    private boolean isLinkValid(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            return false;
+        }
+        return url.matches(LINK_VALIDATION_REGEX);
     }
 
     private void storeResults(String html) {
