@@ -18,6 +18,7 @@ import java.util.Set;
 public class WebCrawler {
 
     private static final String LINK_VALIDATION_REGEX = "^(http://|https://)[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,}(:(\\d)+)?(/($|[a-zA-Z0-9\\-\\.\\?\\,\\'\\\\/+=&amp;%\\$#_\\*!]+))*$";
+    private static final int MAX_CRAWLING_DEPTH = 2;
 
     private final Set<String> visitedUrls;
     private final Queue<String> urlsToVisit;
@@ -26,9 +27,11 @@ public class WebCrawler {
         this.visitedUrls = new HashSet<>();
         this.urlsToVisit = new LinkedList<>();
     }
+
     public void crawl(String seedUrl) {
+        int currentDepth = 0;
         urlsToVisit.add(seedUrl);
-        while (!urlsToVisit.isEmpty()) {
+        while (!urlsToVisit.isEmpty() && currentDepth <= MAX_CRAWLING_DEPTH) {
             String url = urlsToVisit.remove();
             visitedUrls.add(url);
             String html = fetchHtml(url);
@@ -38,6 +41,7 @@ public class WebCrawler {
                     urlsToVisit.add(link);
                 }
             }
+            currentDepth++;
             storeResults(html);
         }
     }
