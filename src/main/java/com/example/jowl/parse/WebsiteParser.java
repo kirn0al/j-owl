@@ -1,34 +1,37 @@
-package com.example.jowl;
+package com.example.jowl.parse;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.stereotype.Component;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 
-public class WebCrawler {
+@Component
+public class WebsiteParser {
 
+    // TODO: got rid of long regex
     private static final String LINK_VALIDATION_REGEX = "^(http://|https://)[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,}(:(\\d)+)?(/($|[a-zA-Z0-9\\-\\.\\?\\,\\'\\\\/+=&amp;%\\$#_\\*!]+))*$";
+
     private static final int MAX_CRAWLING_DEPTH = 2;
 
+    // TODO: use Map (ConcurrentHashMap)
     private final Set<String> visitedUrls;
     private final Queue<String> urlsToVisit;
 
-    public WebCrawler() {
+    public WebsiteParser() {
         this.visitedUrls = new HashSet<>();
         this.urlsToVisit = new LinkedList<>();
     }
 
-    public void crawl(String seedUrl) {
+    // TODO: you can use Map as parameter
+    // TODO: add recursion
+    // TODO: use stream API
+    public void parse(String seedUrl) {
         int currentDepth = 0;
         urlsToVisit.add(seedUrl);
         while (!urlsToVisit.isEmpty() && currentDepth <= MAX_CRAWLING_DEPTH) {
@@ -60,15 +63,17 @@ public class WebCrawler {
         Document doc = Jsoup.parse(html);
         Elements linkElements = doc.select("a[href]");
 
+        // TODO: use stream API
         for (Element linkElement : linkElements) {
             String link = linkElement.attr("href");
-            if(isLinkValid(link)) {
+            if (isLinkValid(link)) {
                 links.add(link);
             }
         }
         return links;
     }
 
+    // TODO: simplify
     private boolean isLinkValid(String url) {
         if (url == null || url.trim().isEmpty()) {
             return false;
@@ -76,6 +81,7 @@ public class WebCrawler {
         return url.matches(LINK_VALIDATION_REGEX);
     }
 
+    // TODO: use Lucene, extract into separate class
     private void storeResults(String html) {
         try (PrintWriter out = new PrintWriter(new FileWriter("results.txt", true))) {
             out.println(html);
