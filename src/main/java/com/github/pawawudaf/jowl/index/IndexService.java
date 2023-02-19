@@ -1,4 +1,4 @@
-package com.example.jowl.index;
+package com.github.pawawudaf.jowl.index;
 
 import org.springframework.stereotype.Service;
 

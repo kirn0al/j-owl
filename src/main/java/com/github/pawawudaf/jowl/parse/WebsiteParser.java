@@ -1,4 +1,4 @@
-package com.example.jowl.parse;
+package com.github.pawawudaf.jowl.parse;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
