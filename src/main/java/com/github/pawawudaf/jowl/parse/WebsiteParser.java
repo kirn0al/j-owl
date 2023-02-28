@@ -9,7 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Component
 public class WebsiteParser {
@@ -18,46 +18,26 @@ public class WebsiteParser {
 
     private static final int MAX_CRAWLING_DEPTH = 2;
 
-    // TODO: use Map (ConcurrentHashMap)
-    private final ConcurrentHashMap<String, String> links = new ConcurrentHashMap<>();
     private final Set<String> visitedUrls = new HashSet<String>();
     private final Queue<String> urlsToVisit = new LinkedList<String>();
 
-    // TODO: you can use Map as parameter
-    public Map<String, String> parse(String seedUrl, Map<String, String> map, int currentDepth) {
+    public ParsedData parse(String seedUrl, ParsedData parsedData, int currentDepth) {
         if (currentDepth > MAX_CRAWLING_DEPTH) {
-            return map;
+            return parsedData;
         }
 
         urlsToVisit.add(seedUrl);
         String html = fetchHtml(seedUrl);
+        parsedData.putObject(seedUrl, html);
         List<String> parsedLinks = parseLinks(html);
         storeResults(html);
 
         parsedLinks.stream()
             .filter(link -> !visitedUrls.contains(link))
             .peek(urlsToVisit::add)
-            .forEach(link -> parse(link, map, currentDepth + 1));
-        return map;
+            .forEach(link -> parse(link, parsedData, currentDepth + 1));
+        return parsedData;
     }
-//    public void parse(String seedUrl, Map<String, String>) {
-//        int currentDepth = 0;
-//        urlsToVisit.add(seedUrl);
-//        while (!urlsToVisit.isEmpty() && currentDepth <= MAX_CRAWLING_DEPTH) {
-//            String url = urlsToVisit.remove();
-//            visitedUrls.add(url);
-//            String html = fetchHtml(url);
-//            List<String> links = parseLinks(html);
-//
-//            for (String link : links) {
-//                if (!visitedUrls.contains(link)) {
-//                    urlsToVisit.add(link);
-//                }
-//            }
-//            currentDepth++;
-//            storeResults(html);
-//        }
-//    }
 
     private String fetchHtml(String url) {
         try {

@@ -4,7 +4,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 public class WebsiteController {
@@ -18,6 +18,6 @@ public class WebsiteController {
 
     @GetMapping(path = "/parse")
     public void parse(@RequestBody LinkCommand linkCommand) {
-        websiteParser.parse(linkCommand.getLink(), new HashMap<String, String>(), INITIAL_DEPTH);
+        System.out.println(websiteParser.parse(linkCommand.getLink(), new ParsedData(), INITIAL_DEPTH));
     }
 }
