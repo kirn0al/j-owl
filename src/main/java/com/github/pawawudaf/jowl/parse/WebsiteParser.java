@@ -6,21 +6,26 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
 
 @Component
 public class WebsiteParser {
 
     private static final String LINK_VALIDATION_REGEX = "^(http://|https://)";
-
-    private static final int MAX_CRAWLING_DEPTH = 2;
+    private static final int MAX_CRAWLING_DEPTH = 2; // TODO: get rid of constant
 
     public ParsedData parse(String seedUrl, ParsedData parsedData, int currentDepth) {
+        // TODO: change condition
         if (currentDepth > MAX_CRAWLING_DEPTH) {
             return parsedData;
         }
 
+        // TODO: fetchHtml
         String html = fetchHtml(seedUrl);
+
+        // TODO: work with HtmlPage
+
+        // TODO: -----
         parsedData.putObject(seedUrl, html);
         List<String> parsedLinks = parseLinks(html);
 
@@ -29,6 +34,9 @@ public class WebsiteParser {
             .forEach(link -> {
                 parse(link, parsedData, currentDepth + 1);
             });
+        // TODO: -----
+
+        // map.put(link, htmlPage);
 
         return parsedData;
     }
@@ -36,6 +44,12 @@ public class WebsiteParser {
     private String fetchHtml(String url) {
         try {
             Document html = Jsoup.connect(url).get();
+
+            // new HtmlPage();
+//            html.body();
+//            html.title();
+//            list of links
+
             return html.toString();
         } catch (IOException e) {
             throw new FetchHtmlException("Error fetching HTML from URL: " + url, e);

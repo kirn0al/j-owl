@@ -1,6 +1,6 @@
-package com.github.pawawudaf.jowl.parse;
+package com.github.pawawudaf.jowl.index;
 
-public class LinkCommand {
+public class IndexCommand {
 
     private String link;
 
