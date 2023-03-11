@@ -6,8 +6,11 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.springframework.stereotype.Service;
@@ -16,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class IndexService {
@@ -37,8 +41,26 @@ public class IndexService {
     public void indexDocuments(ParsedData data) {
         try {
             indexWriter.addDocuments(createDocuments(data));
+            indexWriter.commit();
         } catch (IOException e) {
             throw new IndexingException("Error indexing documents", e);
+        }
+    }
+
+    public String getStringOfIndexedDocuments() {
+        StringBuilder stringBuilder = new StringBuilder();
+        try (IndexReader indexReader = DirectoryReader.open(indexWriter)) {
+            for (int docId = 0; docId < indexReader.maxDoc(); docId++) {
+                Document doc = indexReader.storedFields().document(docId);
+                stringBuilder.append("Document ID: ").append(docId).append("\n");
+                for (IndexableField field : doc.getFields()) {
+                    stringBuilder.append("Field: ").append(field.name()).append(", Value: ").append(field.stringValue()).append("\n");
+                }
+                stringBuilder.append("\n");
+            }
+            return stringBuilder.toString();
+        } catch (IOException e) {
+            throw new IndexReaderException("Error creating IndexReader", e);
         }
     }
 
@@ -63,6 +85,13 @@ public class IndexService {
     private static final class IndexingException extends RuntimeException {
 
         public IndexingException(String message, Exception exception) {
+            super(message, exception);
+        }
+    }
+
+    public class IndexReaderException extends RuntimeException {
+
+        public IndexReaderException(String message, Exception exception) {
             super(message, exception);
         }
     }

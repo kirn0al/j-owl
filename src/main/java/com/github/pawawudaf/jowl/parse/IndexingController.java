@@ -21,4 +21,9 @@ public class IndexingController {
         ParsedData data = websiteParser.parse(linkCommand.getLink(), new ParsedData(), INITIAL_DEPTH);
         indexService.indexDocuments(data);
     }
+
+    @GetMapping(path = "/indexed")
+    public String getIndexed() {
+        return indexService.getStringOfIndexedDocuments();
+    }
 }
