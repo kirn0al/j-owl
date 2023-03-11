@@ -1,5 +1,7 @@
 package com.github.pawawudaf.jowl.parse;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -15,8 +17,12 @@ public class ParsedData {
         data.put(key, value);
     }
 
-    public String getValue(String key) {
-        return data.get(key);
+    public boolean isUrlContained(String link) {
+        return data.containsKey(link);
+    }
+
+    public Set<Map.Entry<String, String>> getDataEntrySet() {
+        return data.entrySet();
     }
 
 }

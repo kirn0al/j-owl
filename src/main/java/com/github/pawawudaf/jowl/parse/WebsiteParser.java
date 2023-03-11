@@ -5,11 +5,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.*;
-import java.util.concurrent.ConcurrentMap;
 
 @Component
 public class WebsiteParser {
@@ -18,24 +15,21 @@ public class WebsiteParser {
 
     private static final int MAX_CRAWLING_DEPTH = 2;
 
-    private final Set<String> visitedUrls = new HashSet<String>();
-    private final Queue<String> urlsToVisit = new LinkedList<String>();
-
     public ParsedData parse(String seedUrl, ParsedData parsedData, int currentDepth) {
         if (currentDepth > MAX_CRAWLING_DEPTH) {
             return parsedData;
         }
 
-        urlsToVisit.add(seedUrl);
         String html = fetchHtml(seedUrl);
         parsedData.putObject(seedUrl, html);
         List<String> parsedLinks = parseLinks(html);
-        storeResults(html);
 
         parsedLinks.stream()
-            .filter(link -> !visitedUrls.contains(link))
-            .peek(urlsToVisit::add)
-            .forEach(link -> parse(link, parsedData, currentDepth + 1));
+            .filter(link -> !parsedData.isUrlContained(link))
+            .forEach(link -> {
+                parse(link, parsedData, currentDepth + 1);
+            });
+
         return parsedData;
     }
 
@@ -44,7 +38,7 @@ public class WebsiteParser {
             Document html = Jsoup.connect(url).get();
             return html.toString();
         } catch (IOException e) {
-            return "";
+            throw new FetchHtmlException("Error fetching HTML from URL: " + url, e);
         }
     }
 
@@ -62,12 +56,10 @@ public class WebsiteParser {
         return url.contains(LINK_VALIDATION_REGEX);
     }
 
-    // TODO: use Lucene, extract into separate class
-    private void storeResults(String html) {
-        try (PrintWriter out = new PrintWriter(new FileWriter("results.txt", true))) {
-            out.println(html);
-        } catch (IOException e) {
-            e.printStackTrace();
+    private static final class FetchHtmlException extends RuntimeException {
+
+        public FetchHtmlException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }
