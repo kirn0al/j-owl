@@ -13,6 +13,8 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
+    implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
     implementation 'org.apache.lucene:lucene-core:9.5.0'
     implementation 'org.jsoup:jsoup:1.15.3'
     implementation 'org.springframework.boot:spring-boot-starter'

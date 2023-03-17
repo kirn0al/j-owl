@@ -1,6 +1,6 @@
 package com.github.pawawudaf.jowl.index;
 
-import com.github.pawawudaf.jowl.parse.ParsedData;
+import com.github.pawawudaf.jowl.parse.HtmlPage;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class IndexService {
@@ -28,7 +29,7 @@ public class IndexService {
         }
     }
 
-    public void indexDocuments(ParsedData data) {
+    public void indexDocuments(Map<String, HtmlPage> data) {
         try {
             indexWriter.addDocuments(createDocuments(data));
             indexWriter.commit();
@@ -59,17 +60,13 @@ public class IndexService {
         }
     }
 
-    private List<Document> createDocuments(ParsedData data) {
-        return data.getDataEntrySet().stream()
+    private List<Document> createDocuments(Map<String, HtmlPage> data) {
+        return data.entrySet().stream()
             .map(entry -> {
                 Document document = new Document();
-                document.add(new TextField("key", entry.getKey(), Field.Store.YES));
-                document.add(new TextField("value", entry.getValue(), Field.Store.YES));
-
-                // TODO:
-//                document.add(new TextField("BODY", ..., Field.Store.YES));
-//                document.add(new TextField("TITLE", ..., Field.Store.YES));
-//                document.add(new TextField("LINK", ..., Field.Store.YES));
+                document.add(new TextField("LINK", entry.getKey(), Field.Store.YES));
+                document.add(new TextField("TITLE", entry.getValue().getTitle(), Field.Store.YES));
+                document.add(new TextField("BODY", entry.getValue().getBody().text(), Field.Store.YES));
                 return document;
             })
             .toList();
