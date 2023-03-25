@@ -6,12 +6,17 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.*;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -38,25 +43,28 @@ public class IndexService {
         }
     }
 
-    public String getStringOfIndexedDocuments() {
-        StringBuilder stringBuilder = new StringBuilder();
-        try (IndexReader indexReader = DirectoryReader.open(indexWriter)) {
-            for (int docId = 0; docId < indexReader.maxDoc(); docId++) {
-                Document doc = indexReader.storedFields().document(docId);
-                stringBuilder.append("Document ID: ").append(docId).append("\n");
-                for (IndexableField field : doc.getFields()) {
-                    stringBuilder
-                        .append("Field: ")
-                        .append(field.name())
-                        .append(", Value: ")
-                        .append(field.stringValue())
-                        .append("\n");
-                }
-                stringBuilder.append("\n");
-            }
-            return stringBuilder.toString();
+    public List<IndexDto> getAllIndexedDocuments() {
+        try (IndexReader reader = DirectoryReader.open(indexWriter)) {
+            IndexSearcher searcher = new IndexSearcher(reader);
+            Query query = new MatchAllDocsQuery();
+            TopDocs topDocs = searcher.search(query, 10);
+
+            return Arrays.stream(topDocs.scoreDocs)
+                .map(scoreDoc -> {
+                    try {
+                        Document doc = reader.document(scoreDoc.doc);
+                        return new IndexDto(
+                            doc.get("TITLE"),
+                            doc.get("LINK"),
+                            topDocs
+                        );
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .toList();
         } catch (IOException e) {
-            throw new IndexReaderException("Error creating IndexReader", e);
+            throw new IndexReaderException("Error during reading index documents", e);
         }
     }
 

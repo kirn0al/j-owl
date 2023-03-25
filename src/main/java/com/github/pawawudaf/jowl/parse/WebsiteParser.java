@@ -1,8 +1,11 @@
 package com.github.pawawudaf.jowl.parse;
 
+import org.apache.commons.validator.routines.UrlValidator;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -12,16 +15,18 @@ import java.util.Map;
 @Component
 public class WebsiteParser {
 
-    private static final String LINK_VALIDATION_REGEX = "^(http://|https://)";
+    private static final UrlValidator urlValidator = new UrlValidator();
+    private static final Logger logger = LoggerFactory.getLogger(WebsiteParser.class);
 
-    public Map<String, HtmlPage> parse(String seedUrl, Map<String, HtmlPage> dataMap) {
+    public Map<String, HtmlPage> parse(String seedUrl, Map<String, HtmlPage> dataMap, int maxDepth) {
         HtmlPage htmlPage = fetchHtml(seedUrl);
-        for (String link : parseLinks(htmlPage.getLinks())) {
-            if (dataMap.containsKey(link)) {
-                continue;
+        dataMap.put(seedUrl, htmlPage);
+        if (maxDepth > 0) {
+            for (String link : parseLinks(htmlPage.getLinks())) {
+                if (!dataMap.containsKey(link)) {
+                    parse(link, dataMap, maxDepth - 1);
+                }
             }
-            dataMap.put(link, htmlPage);
-            parse(link, dataMap);
         }
         return dataMap;
     }
@@ -36,7 +41,8 @@ public class WebsiteParser {
 
             return htmlPage;
         } catch (IOException e) {
-            throw new FetchHtmlException("Error fetching HTML from URL: " + url, e);
+            logger.error("Error fetching HTML from URL: " + url, e);
+            return new HtmlPage();
         }
     }
 
@@ -48,13 +54,6 @@ public class WebsiteParser {
     }
 
     private boolean isLinkValid(String url) {
-        return url.contains(LINK_VALIDATION_REGEX);
-    }
-
-    private static final class FetchHtmlException extends RuntimeException {
-
-        public FetchHtmlException(String message, Exception exception) {
-            super(message, exception);
-        }
+        return urlValidator.isValid(url);
     }
 }
