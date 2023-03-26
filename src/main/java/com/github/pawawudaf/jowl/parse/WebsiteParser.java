@@ -11,22 +11,29 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 @Component
 public class WebsiteParser {
 
     private static final UrlValidator urlValidator = new UrlValidator();
+    private static final Pattern MEDIA_PATTERN = Pattern.compile("\\.(png|jpe?g|gif|bmp|webp|svgz?|pdf)$");
     private static final Logger logger = LoggerFactory.getLogger(WebsiteParser.class);
 
     public Map<String, HtmlPage> parse(String seedUrl, Map<String, HtmlPage> dataMap, int maxDepth) {
         HtmlPage htmlPage = fetchHtml(seedUrl);
-        dataMap.put(seedUrl, htmlPage);
+        if (!htmlPage.isEmpty()) {
+            dataMap.put(seedUrl, htmlPage);
+        }
         if (maxDepth > 0) {
+            int linksProcessed = 0;
             for (String link : parseLinks(htmlPage.getLinks())) {
                 if (!dataMap.containsKey(link)) {
-                    parse(link, dataMap, maxDepth - 1);
+                    dataMap = parse(link, dataMap, maxDepth - 1);
+                    linksProcessed++;
                 }
             }
+            logger.info("Processed " + linksProcessed + " links for URL: " + seedUrl);
         }
         return dataMap;
     }
@@ -38,10 +45,9 @@ public class WebsiteParser {
             htmlPage.setTitle(html.title());
             htmlPage.setBody(html.body());
             htmlPage.setLinks(html.select("a[href]"));
-
             return htmlPage;
         } catch (IOException e) {
-            logger.error("Error fetching HTML from URL: " + url, e);
+            logger.error("Error fetching HTML from URL: " + url);
             return new HtmlPage();
         }
     }
@@ -54,6 +60,6 @@ public class WebsiteParser {
     }
 
     private boolean isLinkValid(String url) {
-        return urlValidator.isValid(url);
+        return !MEDIA_PATTERN.matcher(url.toLowerCase()).find() && urlValidator.isValid(url);
     }
 }

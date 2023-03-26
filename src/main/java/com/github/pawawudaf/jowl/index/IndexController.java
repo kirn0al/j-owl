@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.StopWatch;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -14,12 +15,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class IndexController {
 
     private static final Logger logger = LoggerFactory.getLogger(IndexController.class);
-    private static final int MAX_DEPTH = 1;
+    private static final int MAX_DEPTH = 2;
 
     private final WebsiteParser websiteParser;
     private final IndexService indexService;
@@ -34,13 +36,21 @@ public class IndexController {
     @ResponseStatus(HttpStatus.CREATED)
     public void index(@RequestBody IndexCommand indexCommand) {
         logger.info("Indexing process started... Seed URL:" + indexCommand.getLink());
+        StopWatch stopWatch = new StopWatch();
         try {
-            indexService.indexDocuments(websiteParser.parse(indexCommand.getLink(), new HashMap<String, HtmlPage>(), MAX_DEPTH));
+            stopWatch.start("Parsing");
+            Map<String, HtmlPage> parsedPages = websiteParser.parse(indexCommand.getLink(), new HashMap<String, HtmlPage>(), MAX_DEPTH);
+            stopWatch.stop();
+            logger.info("Time of parsing: " + stopWatch.getLastTaskInfo().getTimeSeconds() + "sec");
+            stopWatch.start("Indexig");
+            indexService.indexDocuments(parsedPages);
+            stopWatch.stop();
+            logger.info("Time of indexing: " + stopWatch.getLastTaskInfo().getTimeSeconds() + " sec");
+            logger.info("The indexing process successfully ended. The number of indexed documents: " + parsedPages.size());
         } catch (Exception e) {
             logger.error("An error occurred during the indexing process: " + e.getMessage());
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to index documents", e);
         }
-        logger.info("The indexing process successfully ended");
     }
 
     @GetMapping("/show")

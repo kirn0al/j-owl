@@ -32,4 +32,10 @@ public class HtmlPage {
     public void setTitle(String title) {
         this.title = title;
     }
+
+    public boolean isEmpty() {
+        return (title == null || title.isEmpty())
+            && (body == null || body.children().isEmpty())
+            && (links == null || links.isEmpty());
+    }
 }
