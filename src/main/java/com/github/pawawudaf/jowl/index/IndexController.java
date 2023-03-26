@@ -1,6 +1,6 @@
 package com.github.pawawudaf.jowl.index;
 
-import com.github.pawawudaf.jowl.parse.HtmlPage;
+import com.github.pawawudaf.jowl.parse.ParsedHtmlPage;
 import com.github.pawawudaf.jowl.parse.WebsiteParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,10 +39,10 @@ public class IndexController {
         StopWatch stopWatch = new StopWatch();
         try {
             stopWatch.start("Parsing");
-            Map<String, HtmlPage> parsedPages = websiteParser.parse(indexCommand.getLink(), new HashMap<String, HtmlPage>(), MAX_DEPTH);
+            Map<String, ParsedHtmlPage> parsedPages = websiteParser.parse(indexCommand.getLink(), new HashMap<>(), MAX_DEPTH);
             stopWatch.stop();
             logger.info("Time of parsing: " + stopWatch.getLastTaskInfo().getTimeSeconds() + "sec");
-            stopWatch.start("Indexig");
+            stopWatch.start("Indexing");
             indexService.indexDocuments(parsedPages);
             stopWatch.stop();
             logger.info("Time of indexing: " + stopWatch.getLastTaskInfo().getTimeSeconds() + " sec");

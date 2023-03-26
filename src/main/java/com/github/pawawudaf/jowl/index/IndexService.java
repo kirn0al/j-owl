@@ -1,11 +1,14 @@
 package com.github.pawawudaf.jowl.index;
 
-import com.github.pawawudaf.jowl.parse.HtmlPage;
+import com.github.pawawudaf.jowl.parse.ParsedHtmlPage;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
@@ -34,11 +37,11 @@ public class IndexService {
         }
     }
 
-    public void indexDocuments(Map<String, HtmlPage> data) {
+    public void indexDocuments(Map<String, ParsedHtmlPage> data) {
         try {
             indexWriter.addDocuments(createDocuments(data));
             indexWriter.commit();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new IndexingException("Error indexing documents", e);
         }
     }
@@ -68,7 +71,7 @@ public class IndexService {
         }
     }
 
-    private List<Document> createDocuments(Map<String, HtmlPage> data) {
+    private List<Document> createDocuments(Map<String, ParsedHtmlPage> data) {
         return data.entrySet().stream()
             .map(entry -> {
                 Document document = new Document();
