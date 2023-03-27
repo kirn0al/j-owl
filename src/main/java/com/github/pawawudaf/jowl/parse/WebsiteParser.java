@@ -19,6 +19,7 @@ public class WebsiteParser {
     private static final Pattern MEDIA_PATTERN = Pattern.compile("\\.(png|jpe?g|gif|bmp|webp|svgz?|pdf)$");
     private static final Logger LOGGER = LoggerFactory.getLogger(WebsiteParser.class);
     private static final String CSS_QUERY = "a[href]";
+    private static final int MIN_DEPTH = 1;
 
     private final UrlValidator urlValidator;
 
@@ -26,21 +27,18 @@ public class WebsiteParser {
         this.urlValidator = urlValidator;
     }
 
-    public Map<String, ParsedHtmlPage> parse(String seedUrl, Map<String, ParsedHtmlPage> pages, int depth) {
-        ParsedHtmlPage parsedHtmlPage = fetchHtml(seedUrl);
-
-        if (!parsedHtmlPage.isEmpty()) {
-            pages.put(seedUrl, parsedHtmlPage);
+    public Map<String, ParsedHtmlPage> parse(Set<String> urls, Map<String, ParsedHtmlPage> pages, int depth) {
+        if (depth < MIN_DEPTH) {
+            return pages;
         }
 
-        if (depth > 0) {
-            for (String link : parsedHtmlPage.getLinks()) {
-                if (!pages.containsKey(link)) {
-                    pages = parse(link, pages, depth - 1);
-                }
-            }
+        for (String url : urls) {
+            ParsedHtmlPage parsedHtmlPage = fetchHtml(url); // TODO: filter cases when ParsedHtmlPage empty or null
+            pages.put(url, parsedHtmlPage);
+            return parse(parsedHtmlPage.getLinks(), pages, depth - 1);
         }
-        return pages;
+
+        return pages;   // TODO: handle case when urls = 0
     }
 
     private ParsedHtmlPage fetchHtml(String url) {

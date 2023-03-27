@@ -13,15 +13,13 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 public class IndexController {
 
     private static final Logger logger = LoggerFactory.getLogger(IndexController.class);
-    private static final int MAX_DEPTH = 2;
+    private static final int MAX_DEPTH = 4;
 
     private final WebsiteParser websiteParser;
     private final IndexService indexService;
@@ -36,12 +34,15 @@ public class IndexController {
     @ResponseStatus(HttpStatus.CREATED)
     public void index(@RequestBody IndexCommand indexCommand) {
         logger.info("Indexing process started... Seed URL:" + indexCommand.getLink());
-        StopWatch stopWatch = new StopWatch();
+        StopWatch stopWatch = new StopWatch(); // TODO: make stopwatch as field of class
         try {
             stopWatch.start("Parsing");
-            Map<String, ParsedHtmlPage> parsedPages = websiteParser.parse(indexCommand.getLink(), new HashMap<>(), MAX_DEPTH);
+            Set<String> seedUrl = Collections.singleton(indexCommand.getLink());
+            Map<String, ParsedHtmlPage> parsedPages = websiteParser.parse(seedUrl, new HashMap<>(), MAX_DEPTH);
             stopWatch.stop();
-            logger.info("Time of parsing: " + stopWatch.getLastTaskInfo().getTimeSeconds() + "sec");
+            logger.info("Time of parsing: " + stopWatch.getLastTaskInfo().getTimeSeconds() + " sec");
+            logger.info("Max depth is: " + MAX_DEPTH);
+
             stopWatch.start("Indexing");
             indexService.indexDocuments(parsedPages);
             stopWatch.stop();
