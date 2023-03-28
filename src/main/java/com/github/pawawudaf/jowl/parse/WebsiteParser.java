@@ -28,12 +28,12 @@ public class WebsiteParser {
     }
 
     public Map<String, ParsedHtmlPage> parse(Set<String> urls, Map<String, ParsedHtmlPage> pages, int depth) {
-        if (depth < MIN_DEPTH) {
+        if (depth < MIN_DEPTH || urls.isEmpty()) {
             return pages;
         }
 
         for (String url : urls) {
-            ParsedHtmlPage parsedHtmlPage = fetchHtml(url); // TODO: filter cases when ParsedHtmlPage empty or null
+            ParsedHtmlPage parsedHtmlPage = fetchHtml(url);
             pages.put(url, parsedHtmlPage);
             return parse(parsedHtmlPage.getLinks(), pages, depth - 1);
         }

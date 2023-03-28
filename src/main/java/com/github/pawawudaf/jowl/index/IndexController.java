@@ -19,7 +19,8 @@ import java.util.*;
 public class IndexController {
 
     private static final Logger logger = LoggerFactory.getLogger(IndexController.class);
-    private static final int MAX_DEPTH = 4;
+    private static final StopWatch stopWatch = new StopWatch();
+    private static final int MAX_DEPTH = 7;
 
     private final WebsiteParser websiteParser;
     private final IndexService indexService;
@@ -34,7 +35,6 @@ public class IndexController {
     @ResponseStatus(HttpStatus.CREATED)
     public void index(@RequestBody IndexCommand indexCommand) {
         logger.info("Indexing process started... Seed URL:" + indexCommand.getLink());
-        StopWatch stopWatch = new StopWatch(); // TODO: make stopwatch as field of class
         try {
             stopWatch.start("Parsing");
             Set<String> seedUrl = Collections.singleton(indexCommand.getLink());
