@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 @Component
 public class WebsiteParser {
 
+    private static final Logger logger = LoggerFactory.getLogger(WebsiteParser.class);
     private static final Pattern MEDIA_PATTERN = Pattern.compile("\\.(png|jpe?g|gif|bmp|webp|svgz?|pdf)$");
     private static final Logger LOGGER = LoggerFactory.getLogger(WebsiteParser.class);
     private static final String CSS_QUERY = "a[href]";
@@ -28,16 +29,17 @@ public class WebsiteParser {
     }
 
     public Map<String, ParsedHtmlPage> parse(Set<String> urls, Map<String, ParsedHtmlPage> pages, int depth) {
-        if (depth < MIN_DEPTH || urls.isEmpty()) {
+        if (depth < MIN_DEPTH) {
             return pages;
         }
-
         for (String url : urls) {
             ParsedHtmlPage parsedHtmlPage = fetchHtml(url);
-            pages.put(url, parsedHtmlPage);
-            return parse(parsedHtmlPage.getLinks(), pages, depth - 1);
+            if (parsedHtmlPage.getTitle() == null) {
+                continue;
+            }
+            pages.putIfAbsent(url, parsedHtmlPage);
+            pages.putAll(parse(parsedHtmlPage.getLinks(), pages, depth - 1));
         }
-
         return pages;   // TODO: handle case when urls = 0
     }
 

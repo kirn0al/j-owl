@@ -20,7 +20,7 @@ public class IndexController {
 
     private static final Logger logger = LoggerFactory.getLogger(IndexController.class);
     private static final StopWatch stopWatch = new StopWatch();
-    private static final int MAX_DEPTH = 7;
+    private static final int MAX_DEPTH = 2;
 
     private final WebsiteParser websiteParser;
     private final IndexService indexService;
