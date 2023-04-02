@@ -6,7 +6,7 @@ public class IndexDto {
 
     private String title;
     private String link;
-    private TopDocs searchResults;
+    private TopDocs searchResults; // TODO: set body instead topDocs
 
     public IndexDto(String title, String link, TopDocs searchResults) {
         this.title = title;

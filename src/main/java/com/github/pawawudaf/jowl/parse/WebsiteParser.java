@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 @Component
 public class WebsiteParser {
 
-    private static final Logger logger = LoggerFactory.getLogger(WebsiteParser.class);
     private static final Pattern MEDIA_PATTERN = Pattern.compile("\\.(png|jpe?g|gif|bmp|webp|svgz?|pdf)$");
     private static final Logger LOGGER = LoggerFactory.getLogger(WebsiteParser.class);
     private static final String CSS_QUERY = "a[href]";
@@ -28,19 +27,25 @@ public class WebsiteParser {
         this.urlValidator = urlValidator;
     }
 
+    // TODO: fix different results after parsing for https://dou.ua/ - PRIORITY 1
     public Map<String, ParsedHtmlPage> parse(Set<String> urls, Map<String, ParsedHtmlPage> pages, int depth) {
         if (depth < MIN_DEPTH) {
             return pages;
         }
+
         for (String url : urls) {
             ParsedHtmlPage parsedHtmlPage = fetchHtml(url);
-            if (parsedHtmlPage.getTitle() == null) {
+
+            if (parsedHtmlPage.getLinks().isEmpty()) {
+                pages.put(url, parsedHtmlPage);
                 continue;
             }
-            pages.putIfAbsent(url, parsedHtmlPage);
-            pages.putAll(parse(parsedHtmlPage.getLinks(), pages, depth - 1));
+
+            pages.put(url, parsedHtmlPage);
+            return parse(parsedHtmlPage.getLinks(), pages, depth - 1);
         }
-        return pages;   // TODO: handle case when urls = 0
+
+        return pages;
     }
 
     private ParsedHtmlPage fetchHtml(String url) {

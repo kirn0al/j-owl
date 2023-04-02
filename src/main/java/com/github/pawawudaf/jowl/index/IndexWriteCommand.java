@@ -1,6 +1,6 @@
 package com.github.pawawudaf.jowl.index;
 
-public class IndexCommand {
+public class IndexWriteCommand {
 
     private String link;
 

@@ -11,7 +11,6 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -49,20 +48,20 @@ public class IndexService {
     public List<IndexDto> getAllIndexedDocuments() {
         try (IndexReader reader = DirectoryReader.open(indexWriter)) {
             IndexSearcher searcher = new IndexSearcher(reader);
-            Query query = new MatchAllDocsQuery();
-            TopDocs topDocs = searcher.search(query, 10);
+            TopDocs topDocs = searcher.search(new MatchAllDocsQuery(), 10); // TODO: extract magic number to constant
 
             return Arrays.stream(topDocs.scoreDocs)
                 .map(scoreDoc -> {
+                    // TODO: extract try-catch to separate method because it so large for map() method
                     try {
-                        Document doc = reader.document(scoreDoc.doc);
+                        Document doc = reader.document(scoreDoc.doc); // TODO: use not deprecated method, check java doc - org.apache.lucene.index.IndexReader.document(int, java.util.Set<java.lang.String>)
                         return new IndexDto(
                             doc.get("TITLE"),
                             doc.get("LINK"),
-                            topDocs
+                            topDocs // TODO: set body instead topDocs
                         );
                     } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        throw new RuntimeException(e); // TODO: wrap exception to custom exception
                     }
                 })
                 .toList();
@@ -75,6 +74,7 @@ public class IndexService {
         return data.entrySet().stream()
             .map(entry -> {
                 Document document = new Document();
+                // TODO: extract "LINK", "TITLE", "BODY" to constants
                 document.add(new TextField("LINK", entry.getKey(), Field.Store.YES));
                 document.add(new TextField("TITLE", entry.getValue().getTitle(), Field.Store.YES));
                 document.add(new TextField("BODY", entry.getValue().getBody().text(), Field.Store.YES));

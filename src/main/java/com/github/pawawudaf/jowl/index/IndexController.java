@@ -20,7 +20,7 @@ public class IndexController {
 
     private static final Logger logger = LoggerFactory.getLogger(IndexController.class);
     private static final StopWatch stopWatch = new StopWatch();
-    private static final int MAX_DEPTH = 2;
+    private static final int MAX_DEPTH = 4;
 
     private final WebsiteParser websiteParser;
     private final IndexService indexService;
@@ -31,13 +31,14 @@ public class IndexController {
         this.indexService = indexService;
     }
 
+    // TODO: pass max depth as Path Variable - "/index/4". Use spring annotation
     @GetMapping("/index")
     @ResponseStatus(HttpStatus.CREATED)
-    public void index(@RequestBody IndexCommand indexCommand) {
-        logger.info("Indexing process started... Seed URL:" + indexCommand.getLink());
+    public void index(@RequestBody IndexWriteCommand indexWriteCommand) {
+        logger.info("Indexing process started... Seed URL:" + indexWriteCommand.getLink());
         try {
             stopWatch.start("Parsing");
-            Set<String> seedUrl = Collections.singleton(indexCommand.getLink());
+            Set<String> seedUrl = Collections.singleton(indexWriteCommand.getLink());
             Map<String, ParsedHtmlPage> parsedPages = websiteParser.parse(seedUrl, new HashMap<>(), MAX_DEPTH);
             stopWatch.stop();
             logger.info("Time of parsing: " + stopWatch.getLastTaskInfo().getTimeSeconds() + " sec");
