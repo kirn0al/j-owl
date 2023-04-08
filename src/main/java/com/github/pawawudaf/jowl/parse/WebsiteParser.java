@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -27,26 +28,31 @@ public class WebsiteParser {
         this.urlValidator = urlValidator;
     }
 
-    // TODO: fix different results after parsing for https://dou.ua/ - PRIORITY 1
-    public Map<String, ParsedHtmlPage> parse(Set<String> urls, Map<String, ParsedHtmlPage> pages, int depth) {
-        if (depth < MIN_DEPTH) {
+    public Map<String, ParsedHtmlPage> parse(Set<String> urls, Map<String, ParsedHtmlPage> pages, int depth, Set<String> visited) {
+        if (depth < MIN_DEPTH || urls.isEmpty()) {
             return pages;
         }
 
+        Set<String> newUrls = new HashSet<>();
         for (String url : urls) {
-            ParsedHtmlPage parsedHtmlPage = fetchHtml(url);
+            if (!visited.contains(url)) {
+                LOGGER.info("Current URL: {}", url);
+                visited.add(url);
+                ParsedHtmlPage parsedHtmlPage = fetchHtml(url);
 
-            if (parsedHtmlPage.getLinks().isEmpty()) {
+                if (parsedHtmlPage.getLinks().isEmpty()) {
+                    pages.put(url, parsedHtmlPage);
+                    continue;
+                }
+
+                newUrls.addAll(parsedHtmlPage.getLinks());
                 pages.put(url, parsedHtmlPage);
-                continue;
             }
-
-            pages.put(url, parsedHtmlPage);
-            return parse(parsedHtmlPage.getLinks(), pages, depth - 1);
         }
 
-        return pages;
+        return parse(newUrls, pages, depth - 1, visited);
     }
+
 
     private ParsedHtmlPage fetchHtml(String url) {
         try {
@@ -58,7 +64,7 @@ public class WebsiteParser {
             parsedHtmlPage.setLinks(parseLinks(html.select(CSS_QUERY)));
             return parsedHtmlPage;
         } catch (Exception e) {
-            LOGGER.error("Error fetching HTML from URL: " + url);
+            LOGGER.error("Error fetching HTML from URL: {}", url);
             return new ParsedHtmlPage();
         }
     }
