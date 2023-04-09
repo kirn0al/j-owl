@@ -1,17 +1,15 @@
 package com.github.pawawudaf.jowl.index;
 
-import org.apache.lucene.search.TopDocs;
-
 public class IndexDto {
 
     private String title;
     private String link;
-    private TopDocs searchResults; // TODO: set body instead topDocs
+    private String body;
 
-    public IndexDto(String title, String link, TopDocs searchResults) {
+    public IndexDto(String title, String link, String body) {
         this.title = title;
         this.link = link;
-        this.searchResults = searchResults;
+        this.body = body;
     }
 
     public String getTitle() {
@@ -30,12 +28,11 @@ public class IndexDto {
         this.link = link;
     }
 
-    public TopDocs getSearchResults() {
-        return searchResults;
+    public String getBody() {
+        return body;
     }
 
-    public void setSearchResults(TopDocs searchResults) {
-        this.searchResults = searchResults;
+    public void setBody(String body) {
+        this.body = body;
     }
-
 }

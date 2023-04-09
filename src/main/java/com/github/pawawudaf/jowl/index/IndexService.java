@@ -11,6 +11,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.MatchAllDocsQuery;
+import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
@@ -25,6 +26,10 @@ import java.util.Map;
 @Service
 public class IndexService {
 
+    static final String TITLE = "TITLE";
+    static final String LINK = "LINK";
+    static final String BODY = "BODY";
+    static final int NUMBER_OF_DOCS = 10;
     private final IndexWriter indexWriter;
 
     public IndexService() {
@@ -45,25 +50,26 @@ public class IndexService {
         }
     }
 
+    private IndexDto getDocumentFromScoreDoc(ScoreDoc scoreDoc, IndexReader reader) {
+        try {
+            Document doc = reader.storedFields().document(scoreDoc.doc);
+            return new IndexDto(
+                doc.get(TITLE),
+                doc.get(LINK),
+                doc.get(BODY)
+            );
+        } catch (IOException e) {
+            throw new GettingIndexException("", e);
+        }
+    }
+
     public List<IndexDto> getAllIndexedDocuments() {
         try (IndexReader reader = DirectoryReader.open(indexWriter)) {
             IndexSearcher searcher = new IndexSearcher(reader);
-            TopDocs topDocs = searcher.search(new MatchAllDocsQuery(), 10); // TODO: extract magic number to constant
+            TopDocs topDocs = searcher.search(new MatchAllDocsQuery(), NUMBER_OF_DOCS);
 
             return Arrays.stream(topDocs.scoreDocs)
-                .map(scoreDoc -> {
-                    // TODO: extract try-catch to separate method because it so large for map() method
-                    try {
-                        Document doc = reader.document(scoreDoc.doc); // TODO: use not deprecated method, check java doc - org.apache.lucene.index.IndexReader.document(int, java.util.Set<java.lang.String>)
-                        return new IndexDto(
-                            doc.get("TITLE"),
-                            doc.get("LINK"),
-                            topDocs // TODO: set body instead topDocs
-                        );
-                    } catch (IOException e) {
-                        throw new RuntimeException(e); // TODO: wrap exception to custom exception
-                    }
-                })
+                .map(scoreDoc -> getDocumentFromScoreDoc(scoreDoc, reader))
                 .toList();
         } catch (IOException e) {
             throw new IndexReaderException("Error during reading index documents", e);
@@ -74,13 +80,19 @@ public class IndexService {
         return data.entrySet().stream()
             .map(entry -> {
                 Document document = new Document();
-                // TODO: extract "LINK", "TITLE", "BODY" to constants
-                document.add(new TextField("LINK", entry.getKey(), Field.Store.YES));
-                document.add(new TextField("TITLE", entry.getValue().getTitle(), Field.Store.YES));
-                document.add(new TextField("BODY", entry.getValue().getBody().text(), Field.Store.YES));
+                document.add(new TextField(LINK, entry.getKey(), Field.Store.YES));
+                document.add(new TextField(TITLE, entry.getValue().getTitle(), Field.Store.YES));
+                document.add(new TextField(BODY, entry.getValue().getBody().text(), Field.Store.YES));
                 return document;
             })
             .toList();
+    }
+
+    private static final class GettingIndexException extends RuntimeException {
+
+        public GettingIndexException(String message, Exception exception) {
+            super(message, exception);
+        }
     }
 
     private static final class TempDirectoryCreationException extends RuntimeException {

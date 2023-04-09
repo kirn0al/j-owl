@@ -36,7 +36,7 @@ public class IndexController {
         if (!stopWatch.isRunning()) stopWatch.start("Indexing");
         logger.info("Indexing process started... Seed URL: {}. Depth parameter: {}", indexWriteCommand.getLink(), depth);
         Set<String> seedUrl = Collections.singleton(indexWriteCommand.getLink());
-        Map<String, ParsedHtmlPage> parsedPages = websiteParser.parse(seedUrl, new HashMap<>(), depth);
+        Map<String, ParsedHtmlPage> parsedPages = websiteParser.parse(seedUrl, new HashMap<>(), depth, new HashSet<>());
         indexService.indexDocuments(parsedPages);
         stopWatch.stop();
         logger.info("The indexing process is done. Elapsed time: {} sec.", stopWatch.getLastTaskInfo().getTimeSeconds());
