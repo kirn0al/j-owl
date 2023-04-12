@@ -1,6 +1,6 @@
-package com.github.pawawudaf.jowl.index;
+package com.github.kirn0al.jowl.index;
 
-import com.github.pawawudaf.jowl.parse.ParsedHtmlPage;
+import com.github.kirn0al.jowl.parse.ParsedHtmlPage;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;

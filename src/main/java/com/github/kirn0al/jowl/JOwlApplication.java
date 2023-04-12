@@ -1,4 +1,4 @@
-package com.github.pawawudaf.jowl;
+package com.github.kirn0al.jowl;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,4 +1,4 @@
-package com.github.pawawudaf.jowl.parse;
+package com.github.kirn0al.jowl.parse;
 
 import org.apache.commons.validator.routines.UrlValidator;
 import org.jsoup.HttpStatusException;

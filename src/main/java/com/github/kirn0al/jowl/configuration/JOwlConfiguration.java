@@ -1,4 +1,4 @@
-package com.github.pawawudaf.jowl.configuration;
+package com.github.kirn0al.jowl.configuration;
 
 import org.apache.commons.validator.routines.UrlValidator;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package com.github.pawawudaf.jowl.index;
+package com.github.kirn0al.jowl.index;
 
 public class IndexDto {
 

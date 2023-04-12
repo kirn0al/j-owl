@@ -1,7 +1,7 @@
-package com.github.pawawudaf.jowl.index;
+package com.github.kirn0al.jowl.index;
 
-import com.github.pawawudaf.jowl.parse.ParsedHtmlPage;
-import com.github.pawawudaf.jowl.parse.HtmlParser;
+import com.github.kirn0al.jowl.parse.HtmlParser;
+import com.github.kirn0al.jowl.parse.ParsedHtmlPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
