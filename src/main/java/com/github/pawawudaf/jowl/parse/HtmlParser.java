@@ -1,6 +1,7 @@
 package com.github.pawawudaf.jowl.parse;
 
 import org.apache.commons.validator.routines.UrlValidator;
+import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -8,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -15,28 +18,29 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Component
-public class WebsiteParser {
+public class HtmlParser {
 
+    // TODO: add Concurrency
+    private static final Logger logger = LoggerFactory.getLogger(HtmlParser.class);
     private static final Pattern MEDIA_PATTERN = Pattern.compile("\\.(png|jpe?g|gif|bmp|webp|svgz?|pdf)$");
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebsiteParser.class);
     private static final String CSS_QUERY = "a[href]";
-    private static final int MIN_DEPTH = 1;
+    private static final int STOP_DEPTH = 1;
 
     private final UrlValidator urlValidator;
 
-    public WebsiteParser(UrlValidator urlValidator) {
+    public HtmlParser(UrlValidator urlValidator) {
         this.urlValidator = urlValidator;
     }
 
     public Map<String, ParsedHtmlPage> parse(Set<String> urls, Map<String, ParsedHtmlPage> pages, int depth, Set<String> visited) {
-        if (depth < MIN_DEPTH || urls.isEmpty()) {
+        if (depth < STOP_DEPTH || urls.isEmpty()) {
             return pages;
         }
 
         Set<String> newUrls = new HashSet<>();
         for (String url : urls) {
             if (!visited.contains(url)) {
-                LOGGER.info("Current URL: {}", url);
+                logger.info("Current URL: {}", url);
                 visited.add(url);
                 ParsedHtmlPage parsedHtmlPage = fetchHtml(url);
 
@@ -63,10 +67,14 @@ public class WebsiteParser {
             parsedHtmlPage.setBody(html.body());
             parsedHtmlPage.setLinks(parseLinks(html.select(CSS_QUERY)));
             return parsedHtmlPage;
-        } catch (Exception e) {
-            LOGGER.error("Error fetching HTML from URL: {}", url);
-            return new ParsedHtmlPage();
+        } catch (SocketTimeoutException e) {
+            logger.error("A connection timed out while processing the following URL: {}", url);
+        } catch (HttpStatusException e) {
+            logger.error("A resource accessed by URL {} gave response with status code {}", url, e.getStatusCode());
+        } catch (IOException e) {
+            logger.error("IOException caused by error during fetching HTML from the following URL: {}", url);
         }
+        return new ParsedHtmlPage();
     }
 
     private Set<String> parseLinks(Elements links) {
