@@ -1,6 +1,7 @@
 package com.github.kirn0al.jowl.parse;
 
 import org.apache.commons.validator.routines.UrlValidator;
+import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -25,6 +26,7 @@ public class HtmlParser {
     private static final Pattern MEDIA_PATTERN = Pattern.compile("\\.(png|jpe?g|gif|bmp|webp|svgz?|pdf)$");
     private static final String CSS_QUERY = "a[href]";
     private static final int STOP_DEPTH = 1;
+    static final String USER_AGENT = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36";
 
     private final UrlValidator urlValidator;
 
@@ -60,8 +62,11 @@ public class HtmlParser {
 
     private ParsedHtmlPage fetchHtml(String url) {
         try {
-            Document html = Jsoup.connect(url).get();
+            // TODO: test if the connection with UserAgent doing well
+            Connection connection = Jsoup.connect(url);
+            connection.userAgent(USER_AGENT);
 
+            Document html = connection.get();
             ParsedHtmlPage parsedHtmlPage = new ParsedHtmlPage();
             parsedHtmlPage.setTitle(html.title());
             parsedHtmlPage.setBody(html.body());
